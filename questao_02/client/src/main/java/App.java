@@ -1,3 +1,9 @@
+
+
+
+
+import com.sun.istack.internal.logging.Logger;
+
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -8,42 +14,47 @@ import java.util.Random;
 
 public class App {
 
+    final static Logger LOG = Logger.getLogger(App.class);
     private static List<Node> nodes =  new ArrayList<>();
 
-    @PostConstruct
-    public void initialize(){
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         nodes.add(new Node(new InetSocketAddress("localhost",10000),"node1",""));
         nodes.add(new Node(new InetSocketAddress("localhost",11000),"node2","node1"));
         nodes.add(new Node(new InetSocketAddress("localhost",12000),"node3",""));
-    }
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
-        Request request = new Request("op1", 2, 3);
-        Socket socket = new Socket();
+        Request request = new Request("op2", 2, 3);
+        boolean deveEnviar = false;
         Node nodeRandomForRequest = getNodeRandomForRequest(nodes);
+        LOG.info("Nó aleatório para a requisição-->" + nodeRandomForRequest);
         boolean available = isAvailable(nodeRandomForRequest);
 
+        Socket socket = new Socket();
         if(available){
+            LOG.info("Nó está disponível!");
             socket.connect(nodeRandomForRequest.getAddress());
+            deveEnviar = true;
         }else{
+            LOG.severe("Nó não está disponível!");
             try {
+                LOG.info("Buscando nó não réplica......");
                 Node nodeNonReplica = getNodeNonReplica(nodeRandomForRequest.getNode());
                 socket.connect(nodeNonReplica.getAddress());
+                deveEnviar = true;
             } catch (NonReplicaAvailableException e) {
-                System.out.println(e.getMessage());
+                LOG.severe("Não há nenhum nó não réplica");
             }
         }
 
-        //ENVIANDO OPERAÇÃO
-        OutputStream outToServer = socket.getOutputStream();
-        ObjectOutputStream objectOut = new ObjectOutputStream(outToServer);
-        objectOut.writeObject(request);
+        if(deveEnviar){
+            LOG.info("Enviando requisição: " + request);
+            ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+            objectOut.writeObject(request);
 
-        //RECEBENDO RESULTADO
-        InputStream inputStream = socket.getInputStream();
-        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
-        Integer result = (Integer) objectInputStream.readObject();
-
+            LOG.info("Recebendo valor resultado...");
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            Integer result = (Integer) objectInputStream.readObject();
+            System.out.println("O resultado é: " + result);
+        }
 
         socket.close();
     }

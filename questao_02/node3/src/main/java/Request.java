@@ -5,6 +5,9 @@ public class Request implements Serializable {
     private int numero1;
     private int numero2;
 
+    public Request() {
+    }
+
     public Request(String op, int numero1, int numero2) {
         this.op = op;
         this.numero1 = numero1;
