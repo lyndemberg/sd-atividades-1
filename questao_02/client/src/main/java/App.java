@@ -12,25 +12,25 @@ public class App {
 
     @PostConstruct
     public void initialize(){
-        nodes.add(new Node(new InetSocketAddress("localhost",10000),"node1"));
-        nodes.add(new Node(new InetSocketAddress("localhost",11000),"replica-node1"));
-        nodes.add(new Node(new InetSocketAddress("localhost",12000),"node3"));
+        nodes.add(new Node(new InetSocketAddress("localhost",10000),"node1",""));
+        nodes.add(new Node(new InetSocketAddress("localhost",11000),"node2","node1"));
+        nodes.add(new Node(new InetSocketAddress("localhost",12000),"node3",""));
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         Request request = new Request("op1", 2, 3);
         Socket socket = new Socket();
-        Node nodeRandomForRequest = getNodeRandomForRequest();
+        Node nodeRandomForRequest = getNodeRandomForRequest(nodes);
         boolean available = isAvailable(nodeRandomForRequest);
 
         if(available){
             socket.connect(nodeRandomForRequest.getAddress());
         }else{
             try {
-                Node nodeNonReplica = getNodeNonReplica(nodeRandomForRequest.getDescription());
+                Node nodeNonReplica = getNodeNonReplica(nodeRandomForRequest.getNode());
                 socket.connect(nodeNonReplica.getAddress());
             } catch (NonReplicaAvailableException e) {
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         }
 
@@ -62,24 +62,22 @@ public class App {
         return isAvailable;
     }
 
-    private static Node getNodeNonReplica(String description) throws NonReplicaAvailableException {
-        Node node = null;
+    private static Node getNodeNonReplica(String node) throws NonReplicaAvailableException {
+        List<Node> listNonReplica = new ArrayList<>();
         for(Node n : nodes){
-            String[] split = n.getDescription().split("-");
-            if(!split[0].equals("replica") && !split[1].equals(description)) {
-                node = n;
-            }
+            if(!n.getNode().equals(node) && !n.getReplicaOf().equals(node))
+                listNonReplica.add(n);
         }
 
-        if(node == null)
+        if(listNonReplica.isEmpty())
             throw new NonReplicaAvailableException("Nenhum nó não-réplica disponível");
 
-        return node;
+        return getNodeRandomForRequest(listNonReplica);
     }
 
-    private static Node getNodeRandomForRequest(){
+    private static Node getNodeRandomForRequest(List<Node> nodesList){
         Random random = new Random();
-        Node node = nodes.get(random.nextInt(nodes.size()));
+        Node node = nodesList.get(random.nextInt(nodesList.size()));
         return node;
     }
 

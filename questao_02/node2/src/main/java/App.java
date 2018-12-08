@@ -17,21 +17,9 @@ public class App {
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
             Request request = (Request) objectInputStream.readObject();
             Object result = null;
-            if(request.getOp().equals("op1")){
+            if(request.getOp().equals(opAvailable)){
                 Integer i = resolverOperacao1(request.getNumero1(), request.getNumero2());
                 result = i;
-            }else{
-                Socket socketToNode3 = new Socket();
-                socketToNode3.connect(new InetSocketAddress("localhost",12000));
-                OutputStream outputStream = socketToNode3.getOutputStream();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                objectOutputStream.writeObject(request);
-
-                InputStream inputStreamNode3 = socketToNode3.getInputStream();
-                ObjectInputStream objectInputStreamNode3 = new ObjectInputStream(inputStreamNode3);
-                result = objectInputStream.readObject();
-
-                socketToNode3.close();
             }
 
             OutputStream outputStream = accept.getOutputStream();

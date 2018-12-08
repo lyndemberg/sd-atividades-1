@@ -9,24 +9,34 @@ public class App {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         String opAvailable = "op1";
 
-        Map<String,String> fowardsOperations = new HashMap<String, String>();
-
         ServerSocket server = new ServerSocket();
         server.bind(new InetSocketAddress("localhost",10000));
         while(true){
             Socket accept = server.accept();
-
             InputStream inputStream = accept.getInputStream();
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
             Request request = (Request) objectInputStream.readObject();
-            if(request.getOp().equals("op1")){
+            Object result = null;
+            if(request.getOp().equals(opAvailable)){
                 Integer i = resolverOperacao1(request.getNumero1(), request.getNumero2());
-                OutputStream outputStream = accept.getOutputStream();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-                objectOutputStream.writeObject(i);
+                result = i;
             }else{
+                Socket socketToNode3 = new Socket();
+                socketToNode3.connect(new InetSocketAddress("localhost",12000));
+                OutputStream outputStream = socketToNode3.getOutputStream();
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+                objectOutputStream.writeObject(request);
 
+                InputStream inputStreamNode3 = socketToNode3.getInputStream();
+                ObjectInputStream objectInputStreamNode3 = new ObjectInputStream(inputStreamNode3);
+                result = objectInputStream.readObject();
+
+                socketToNode3.close();
             }
+
+            OutputStream outputStream = accept.getOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(result);
 
             accept.close();
         }
@@ -37,7 +47,4 @@ public class App {
         return  2 * y * x;
     }
 
-    private static getNodeForOperation(){
-
-    }
 }
