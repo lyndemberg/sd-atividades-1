@@ -1,5 +1,6 @@
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -17,57 +18,38 @@ public class App {
         nodes.add(new Node(new InetSocketAddress("localhost",11000),"node2","node1"));
         nodes.add(new Node(new InetSocketAddress("localhost",12000),"node3",""));
 
-        Request request = new Request("op2", 2, 3);
-        boolean deveEnviar = false;
+        Request request = new Request("op1", 10, 3);
         Node nodeRandomForRequest = getNodeRandomForRequest(nodes);
         LOG.info("Nó aleatório para a requisição-->" + nodeRandomForRequest);
-        boolean available = isAvailable(nodeRandomForRequest);
 
         Socket socket = new Socket();
-        if(available){
-            LOG.info("Nó está disponível!");
-            socket = new Socket(nodeRandomForRequest.getAddress().getHostName(),nodeRandomForRequest.getAddress().getPort());
-//            socket.connect(nodeRandomForRequest.getAddress());
-            deveEnviar = true;
-        }else{
+
+        try{
+            socket = new Socket(nodeRandomForRequest.getAddress().getHostName(), nodeRandomForRequest.getAddress().getPort());
+        }catch (ConnectException ex){
             LOG.severe("Nó não está disponível!");
+            LOG.info("Buscando nó não réplica......");
             try {
-                LOG.info("Buscando nó não réplica......");
                 Node nodeNonReplica = getNodeNonReplica(nodeRandomForRequest.getNode());
                 socket = new Socket(nodeNonReplica.getAddress().getHostName(),nodeNonReplica.getAddress().getPort());
-//                socket.connect(nodeNonReplica.getAddress());
-                deveEnviar = true;
             } catch (NonReplicaAvailableException e) {
-                LOG.severe("Não há nenhum nó não-réplica");
+                LOG.severe("Não existe nenhum nó não-réplica");
+            } catch (ConnectException ex2){
+                LOG.severe("Nó não réplica não está disponível");
             }
         }
 
-        if(deveEnviar){
-            LOG.info("Enviando requisição: " + request);
-            ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
-            objectOut.writeObject(request);
+        LOG.info("Enviando requisição: " + request);
+        ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
+        objectOut.writeObject(request);
 
-            LOG.info("Recebendo resultado...");
-            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            Integer result =  objectInputStream.readInt();
-            System.out.println("O resultado é: " + result);
-        }
+        LOG.info("Recebendo resultado...");
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        Response response = (Response) objectInputStream.readObject();
+
+        System.out.println(response.toString());
 
         socket.close();
-    }
-
-    private static boolean isAvailable(Node node){
-        boolean isAvailable = false;
-        Socket socket = new Socket();
-        int timeout = 2000;
-        try{
-            socket.connect(node.getAddress(), timeout);
-            socket.close();
-            isAvailable = true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return isAvailable;
     }
 
     private static Node getNodeNonReplica(String node) throws NonReplicaAvailableException {

@@ -32,17 +32,18 @@ public class App {
         Request request = (Request) objectInputStream.readObject();
         LOG.info(request.toString());
 
-        Integer result = null;
+        Response response = new Response();
         if(request.getOp().equals(opAvailable)){
             LOG.info("Resolvendo operação");
-            result = resolverOperacao1(request.getNumero1(), request.getNumero2());
+            response.setResult(resolverOperacao1(request.getNumero1(), request.getNumero2()));
+            response.setSolved(true);
+        }else{
+            response.setSolved(false);
         }
 
         LOG.info("Encaminhando resultado");
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(accept.getOutputStream());
-        objectOutputStream.writeInt(result);
-        objectOutputStream.flush();
-        objectOutputStream.close();
+        objectOutputStream.writeObject(response);
         accept.close();
     }
 }

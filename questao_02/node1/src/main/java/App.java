@@ -28,11 +28,11 @@ public class App {
         Request request = (Request) objectInputStream.readObject();
         LOG.info(request.toString());
 
-        Integer result = null;
+        Response response = new Response();
         if(request.getOp().equals(opAvailable)){
             LOG.info("Resolvendo operação");
-            Integer i = resolverOperacao1(request.getNumero1(), request.getNumero2());
-            result = i;
+            response.setResult(resolverOperacao1(request.getNumero1(), request.getNumero2()));
+            response.setSolved(true);
         }else{
             LOG.info("Não é possível resolver, encaminhando para node3");
             Socket socketToNode3 = new Socket("localhost",12000);
@@ -42,13 +42,15 @@ public class App {
 
             LOG.info("Recebendo resultado do node3");
             ObjectInputStream objectInputStreamNode3 = new ObjectInputStream(socketToNode3.getInputStream());
-            result = objectInputStreamNode3.readInt();
+
+            response = (Response) objectInputStreamNode3.readObject();
+
             socketToNode3.close();
         }
 
         LOG.info("Encaminhando resultado");
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(accept.getOutputStream());
-        objectOutputStream.writeInt(result);
+        objectOutputStream.writeObject(response);
         accept.close();
     }
 
