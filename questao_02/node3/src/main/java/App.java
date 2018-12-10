@@ -1,4 +1,4 @@
-import com.sun.istack.internal.logging.Logger;
+import com.sun.javafx.binding.Logging;
 import org.omg.CORBA.Object;
 
 import java.io.*;
@@ -9,10 +9,11 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 
 public class App {
-    final static Logger LOG = Logger.getLogger(App.class);
     static String opAvailable = "op2";
+    final static Logger LOG = Logger.getLogger(App.class.getName());
     static SocketAddress node1 = new InetSocketAddress("localhost", 10000);
     static SocketAddress node2 = new InetSocketAddress("localhost", 11000);
 
@@ -21,37 +22,43 @@ public class App {
         server.bind(new InetSocketAddress("localhost",12000));
         while(true){
             Socket accept = server.accept();
-            LOG.info("Recebeu nova requisição");
-            ObjectInputStream objectInputStream = new ObjectInputStream(accept.getInputStream());
-            Request request = (Request) objectInputStream.readObject();
-            LOG.info(request.toString());
-
-            Integer result = null;
-            if(request.getOp().equals(opAvailable)){
-                LOG.info("Resolvendo operação");
-                Integer i = resolverOperacao2(request.getNumero1(), request.getNumero2());
-                result = i;
-            }else{
-                LOG.info("Encaminhando a operação para NODE 1 ou 2");
-                SocketAddress nodeForOperation1 = getNodeForOperation1();
-                Socket socket = new Socket();
-                socket.connect(nodeForOperation1);
-                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-                out.writeObject(request);
-
-                LOG.info("Recebendo resultado encaminhado");
-                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-                result = (Integer) in.readObject();
-                socket.close();
-            }
-
-            LOG.info("Encaminhando resultado");
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(accept.getOutputStream());
-            objectOutputStream.writeObject(result);
-
-            accept.close();
+            tratarRequisicao(accept);
         }
 //        server.close();
+    }
+
+    private static void tratarRequisicao(Socket accept) throws IOException, ClassNotFoundException {
+        ObjectInputStream objectInputStream = new ObjectInputStream(accept.getInputStream());
+        LOG.info("Recebeu nova requisição");
+        Request request = (Request) objectInputStream.readObject();
+        LOG.info(request.toString());
+
+        Integer result = null;
+        if(request.getOp().equals(opAvailable)){
+            LOG.info("Resolvendo operação");
+            Integer i = resolverOperacao2(request.getNumero1(), request.getNumero2());
+            result = i;
+        }else{
+            LOG.info("Encaminhando a operação para NODE 1 ou 2");
+            SocketAddress nodeForOperation1 = getNodeForOperation1();
+            Socket socket = new Socket();
+            socket.connect(nodeForOperation1);
+
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.writeObject(request);
+
+            LOG.info("Recebendo resultado encaminhado");
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            result = in.readInt();
+            socket.close();
+        }
+
+        LOG.info("Encaminhando resultado");
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(accept.getOutputStream());
+        objectOutputStream.writeInt(result);
+        objectOutputStream.flush();
+        objectOutputStream.close();
+        accept.close();
     }
 
     private static int resolverOperacao2(int x, int y){

@@ -1,21 +1,31 @@
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 public class Node {
-    private SocketAddress address;
+    private InetSocketAddress address;
     private String node;
     private String replicaOf;
 
-    public Node(SocketAddress address, String node, String replicaOf) {
+    public Node(InetSocketAddress address, String node, String replicaOf) {
         this.address = address;
         this.node = node;
         this.replicaOf = replicaOf;
     }
 
-    public SocketAddress getAddress() {
+    @Override
+    public String toString() {
+        return "Node{" +
+                "address=" + address +
+                ", node='" + node + '\'' +
+                ", replicaOf='" + replicaOf + '\'' +
+                '}';
+    }
+
+    public InetSocketAddress getAddress() {
         return address;
     }
 
-    public void setAddress(SocketAddress address) {
+    public void setAddress(InetSocketAddress address) {
         this.address = address;
     }
 
@@ -35,12 +45,6 @@ public class Node {
         this.replicaOf = replicaOf;
     }
 
-    @Override
-    public String toString() {
-        return "Node{" +
-                "address=" + address +
-                ", node='" + node + '\'' +
-                ", replicaOf='" + replicaOf + '\'' +
-                '}';
+    public Node() {
     }
 }

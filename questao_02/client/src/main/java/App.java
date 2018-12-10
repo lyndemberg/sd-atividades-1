@@ -1,9 +1,3 @@
-
-
-
-
-import com.sun.istack.internal.logging.Logger;
-
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -11,13 +5,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 
 public class App {
 
-    final static Logger LOG = Logger.getLogger(App.class);
+    final static Logger LOG = Logger.getLogger(App.class.getName());
     private static List<Node> nodes =  new ArrayList<>();
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         nodes.add(new Node(new InetSocketAddress("localhost",10000),"node1",""));
         nodes.add(new Node(new InetSocketAddress("localhost",11000),"node2","node1"));
         nodes.add(new Node(new InetSocketAddress("localhost",12000),"node3",""));
@@ -31,17 +26,19 @@ public class App {
         Socket socket = new Socket();
         if(available){
             LOG.info("Nó está disponível!");
-            socket.connect(nodeRandomForRequest.getAddress());
+            socket = new Socket(nodeRandomForRequest.getAddress().getHostName(),nodeRandomForRequest.getAddress().getPort());
+//            socket.connect(nodeRandomForRequest.getAddress());
             deveEnviar = true;
         }else{
             LOG.severe("Nó não está disponível!");
             try {
                 LOG.info("Buscando nó não réplica......");
                 Node nodeNonReplica = getNodeNonReplica(nodeRandomForRequest.getNode());
-                socket.connect(nodeNonReplica.getAddress());
+                socket = new Socket(nodeNonReplica.getAddress().getHostName(),nodeNonReplica.getAddress().getPort());
+//                socket.connect(nodeNonReplica.getAddress());
                 deveEnviar = true;
             } catch (NonReplicaAvailableException e) {
-                LOG.severe("Não há nenhum nó não réplica");
+                LOG.severe("Não há nenhum nó não-réplica");
             }
         }
 
@@ -50,9 +47,9 @@ public class App {
             ObjectOutputStream objectOut = new ObjectOutputStream(socket.getOutputStream());
             objectOut.writeObject(request);
 
-            LOG.info("Recebendo valor resultado...");
+            LOG.info("Recebendo resultado...");
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-            Integer result = (Integer) objectInputStream.readObject();
+            Integer result =  objectInputStream.readInt();
             System.out.println("O resultado é: " + result);
         }
 
