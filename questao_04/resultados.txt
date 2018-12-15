@@ -1,0 +1,5 @@
+------SEM THREAD---------
+100 requests - 14 segundos
+1000 requests - 257 segundos
+------COM THREAD---------
+1000 requests - 0 segundos

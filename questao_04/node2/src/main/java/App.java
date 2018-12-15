@@ -13,7 +13,8 @@ public class App {
         UserDao userDao = new UserDao();
         ServerSocket server = new ServerSocket();
         server.bind(new InetSocketAddress("localhost", 11000));
-//     SOLUÇÃO BÁSICA
+
+//     SOLUÇÃO BÁSICA SEM THREAD
 //        while(true){
 //            Socket accept = server.accept();
 //
@@ -31,7 +32,8 @@ public class App {
 //            accept.close();
 //        }
 
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        // COM THREAD
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         while(true){
             Socket accept = server.accept();
             executorService.execute(new HandleRequest(accept,userDao));

@@ -1,4 +1,4 @@
 CREATE TABLE tb_user(
-	code SERIAL PRIMARY KEY,
+	code INT PRIMARY KEY,
 	nome VARCHAR(50)
 );

@@ -10,9 +10,10 @@ public class UserDao {
         Connection con = null;
         try{
             con = ConFactory.getConnectionPostgres();
-            String sql = "INSERT INTO tb_user (nome) VALUES (?)";
+            String sql = "INSERT INTO tb_user (code,nome) VALUES (?,?)";
             PreparedStatement statement = con.prepareStatement(sql);
-            statement.setString(1, user.getNome());
+            statement.setInt(1, user.getCode());
+            statement.setString(2, user.getNome());
             statement.executeUpdate();
         }finally {
             if(con != null)
@@ -24,9 +25,10 @@ public class UserDao {
         Connection con = null;
         try{
             con = ConFactory.getConnectionMySql();
-            String sql = "INSERT INTO tb_user (nome) VALUES (?)";
+            String sql = "INSERT INTO tb_user (code,nome) VALUES (?,?)";
             PreparedStatement statement = con.prepareStatement(sql);
-            statement.setString(1, user.getNome());
+            statement.setInt(1, user.getCode());
+            statement.setString(2, user.getNome());
             statement.executeUpdate();
         }finally {
             if(con != null)

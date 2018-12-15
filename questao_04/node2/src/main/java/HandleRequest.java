@@ -4,8 +4,12 @@ import java.net.Socket;
 import java.sql.SQLException;
 
 public class HandleRequest implements Runnable {
+
+
     private final Socket accept;
     private final UserDao userDao;
+
+
     public HandleRequest(Socket accept, UserDao userDao) {
         this.accept = accept;
         this.userDao = userDao;
