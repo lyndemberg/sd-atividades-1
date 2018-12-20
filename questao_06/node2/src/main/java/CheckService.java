@@ -20,12 +20,12 @@ public class CheckService {
         this.threadMonitor.start();
     }
 
-    public void notify(WatchEvent event){
+    public void notify(Event event){
         try {
             ObjectOutputStream out = new ObjectOutputStream(observer.getOutputStream());
             out.writeObject(event);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 

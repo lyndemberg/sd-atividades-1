@@ -20,8 +20,8 @@ public class Monitor implements Runnable{
                         StandardWatchEventKinds.ENTRY_CREATE);
                 while(true){
                     WatchKey key = watchService.take();
-                    for(WatchEvent<?> event : key.pollEvents()){
-//                    WatchEvent.Kind<?> eventKind = event.kind();
+                    for(WatchEvent<?> e : key.pollEvents()){
+                        Event event = new Event(e.context().toString(), e.kind().name());
                         this.checkService.notify(event);
                     }
                     key.reset();
