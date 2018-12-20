@@ -1,0 +1,1 @@
+java -jar /opt/node0/target/node0-jar-with-dependencies.jar

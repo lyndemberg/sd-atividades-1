@@ -6,8 +6,8 @@ import java.net.Socket;
 public class Main {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         ServerSocket serverSocket = new ServerSocket();
-        serverSocket.bind(new InetSocketAddress("localhost",11000));
-
+        serverSocket.bind(new InetSocketAddress("node2",11000));
+        System.out.println("Node2 iniciou");
         while(true){
             Socket accept = serverSocket.accept();
             ObjectInputStream in = new ObjectInputStream(accept.getInputStream());
@@ -24,7 +24,8 @@ public class Main {
     }
 
     private static void executeDiff(Request r) throws IOException {
-        File diff_file = new File("/home/lyndemberg/diff.txt");
+        System.out.println("Node2 recebeu" + r.toString());
+        File diff_file = new File("/opt/shared/diff.txt");
         if(diff_file.exists()){
             int result = r.x - r.y;
             FileWriter fr = new FileWriter(diff_file,true);
@@ -36,7 +37,6 @@ public class Main {
         }else {
             System.out.println("Arquivo diff.txt não existe");
         }
-        System.out.println(r.toString());
         System.out.println("Node2 escreveu o resultado em diff.txt");
     }
 }

@@ -1,0 +1,30 @@
+version: '3'
+services:
+  node1:
+    build: ./node1
+    container_name: node1
+    networks:
+      - my_net
+    volumes:
+      - shared:/opt/shared
+  node2:
+    build: ./node2
+    container_name: node2
+    networks:
+      - my_net
+    volumes:
+      - shared:/opt/shared
+  node0:
+    build: ./node0
+    container_name: node0
+    networks:
+      - my_net
+    depends_on:
+      - node1
+      - node2
+
+volumes:
+  shared:
+networks:
+  my_net: 
+    driver: bridge

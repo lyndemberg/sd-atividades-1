@@ -6,8 +6,8 @@ import java.net.Socket;
 public class Main {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         ServerSocket serverSocket = new ServerSocket();
-        serverSocket.bind(new InetSocketAddress("localhost",10000));
-        
+        serverSocket.bind(new InetSocketAddress("node1",10000));
+        System.out.println("Node1 iniciou");
         while(true){
             Socket accept = serverSocket.accept();
             ObjectInputStream in = new ObjectInputStream(accept.getInputStream());
@@ -25,7 +25,8 @@ public class Main {
     }
 
     private static void executeSum(Request r) throws IOException {
-        File sum_file = new File("/home/lyndemberg/sum.txt");
+        System.out.println("Node1 recebeu" + r.toString());
+        File sum_file = new File("/opt/shared/sum.txt");
         if(sum_file.exists()){
             int result = r.x + r.y;
             FileWriter fr = new FileWriter(sum_file,true);
@@ -37,7 +38,6 @@ public class Main {
         }else {
             System.out.println("Arquivo sum.txt não existe");
         }
-        System.out.println(r.toString());
         System.out.println("Node1 escreveu o resultado em sum.txt");
     }
 }
